@@ -9,32 +9,20 @@ load_dotenv(override=True)
 openai = OpenAI()
 MODEL = "gpt-4o-mini"
 
-system_message = "You are a helpful math tutor"
+system_msg = "You are a helpful math tutor"
 
-# We define a function that creates a message list for the conversation,
-# combining the system prompt, previous interactions and the new user input
-# it takes as param a message and a history for past interactions
-#it assumes history is a list of dicts, better for: Quick reuse in API calls, less transformation needed
-
+# Define a function to create a message list for the conversation,
+# combining the system prompt, previous interactions, and new user input.
+# It accepts a message and a history of past interactions as parameters.
+# Assumes history is a list of tuples, making it more suitable for:
+# - Relational DBs
+# - Simplicity
+# - Structured logs
 def chat(message, history):
-    messages = [{"role": "system", "content": system_message}] + history + [{"role": "user", "content": message}]
-    stream = openai.chat.completions.create(model=MODEL, messages=messages, stream=True,)
-
-    response = ""
-    for chunk in stream:
-        response += chunk.choices[0].delta.content or ""
-        yield response
-
-#gradio interface
-gr.ChatInterface(fn=chat, type="messages").launch(inbrowser=True)
-
-
-#Assumes history is a list of tuples, better for: Relational DBs, simplicity, structured logs
-def chat(message, history):
-    messages = [{"role": "system", "content": system_message}]
-    for user_message, assistant_message in history:
-        messages.append({"role": "user", "content": user_message})
-        messages.append({"role": "assistant", "content": assistant_message})
+    messages = [{"role": "system", "content": system_msg}]
+    for user_msg, assistant_msg in history:
+        messages.append({"role": "user", "content": user_msg})
+        messages.append({"role": "assistant", "content": assistant_msg})
     messages.append({"role": "user", "content": message})
     
     stream = openai.chat.completions.create(model=MODEL, messages=messages, stream=True)
@@ -43,5 +31,8 @@ def chat(message, history):
     for chunk in stream:
         response += chunk.choices[0].delta.content or ""
         yield response
+
+#gradio interface
+gr.ChatInterface(fn=chat, type="messages").launch(inbrowser=True)
 
 
