@@ -2,3 +2,4 @@ python-dotenv
 ollama
 requests
 openai
+gradio
